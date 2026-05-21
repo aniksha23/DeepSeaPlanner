@@ -108,26 +108,25 @@ public class MissionDAO {
 
     // DELETE MISSION — also deletes assignments via FK cascade
     public void deleteMission(int missionId) {
-        // Delete assignments first to avoid FK constraint errors
         String deleteAssignments = "DELETE FROM assignment WHERE mission_id = ?";
         String deleteMission = "DELETE FROM mission WHERE mission_id = ?";
 
         try (Connection conn = DBConnection.getConnection()) {
             conn.setAutoCommit(false);
-            try {
-                try (PreparedStatement p1 = conn.prepareStatement(deleteAssignments)) {
-                    p1.setInt(1, missionId);
-                    p1.executeUpdate();
-                }
-                try (PreparedStatement p2 = conn.prepareStatement(deleteMission)) {
-                    p2.setInt(1, missionId);
-                    p2.executeUpdate();
-                }
+            try (PreparedStatement p1 = conn.prepareStatement(deleteAssignments);
+                 PreparedStatement p2 = conn.prepareStatement(deleteMission)) {
+                
+                p1.setInt(1, missionId);
+                p1.executeUpdate();
+                
+                p2.setInt(1, missionId);
+                p2.executeUpdate();
+                
                 conn.commit();
                 System.out.println("✅ Mission #" + missionId + " and its assignments deleted.");
             } catch (SQLException e) {
                 conn.rollback();
-                e.printStackTrace();
+                throw e;
             }
         } catch (SQLException e) {
             e.printStackTrace();
