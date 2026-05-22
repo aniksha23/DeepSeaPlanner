@@ -324,8 +324,31 @@ public class DashboardFrame extends JFrame {
             }
         });
 
-        // Right-click: delete
+        // Right-click: update status or delete
         JPopupMenu popup = new JPopupMenu();
+        JMenuItem statusItem = new JMenuItem("✎ Update Status");
+        statusItem.addActionListener(e -> {
+            int row = table.getSelectedRow();
+            if (row == -1) { JOptionPane.showMessageDialog(this, "Select a mission first."); return; }
+            int id = (int) table.getValueAt(row, 0);
+            
+            MissionStatus[] statuses = MissionStatus.values();
+            String[] statusStrings = new String[statuses.length];
+            for (int i = 0; i < statuses.length; i++) {
+                statusStrings[i] = statuses[i].name();
+            }
+            
+            String currentStatus = String.valueOf(table.getValueAt(row, 5));
+            String chosen = (String) JOptionPane.showInputDialog(this,
+                "Select new status for Mission #" + id,
+                "Update Status", JOptionPane.QUESTION_MESSAGE, null,
+                statusStrings, currentStatus);
+                
+            if (chosen != null) {
+                missionDAO.updateMissionStatus(id, MissionStatus.valueOf(chosen));
+                refreshDashboard();
+            }
+        });
         JMenuItem deleteItem = new JMenuItem("⚠ Delete Mission");
         deleteItem.setForeground(new Color(192, 57, 43));
         deleteItem.addActionListener(e -> {
@@ -340,6 +363,8 @@ public class DashboardFrame extends JFrame {
                 }
             }
         });
+        popup.add(statusItem);
+        popup.addSeparator();
         popup.add(deleteItem);
         table.setComponentPopupMenu(popup);
 
